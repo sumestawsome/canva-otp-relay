@@ -44,16 +44,12 @@ USING (
 );
 
 -- 4. RLS Policies for otp_logs
--- Only users whose email exists in allowed_users can SELECT from otp_logs
-CREATE POLICY "Allow whitelisted users to read otp_logs"
+-- Allow all authenticated users to SELECT from otp_logs
+CREATE POLICY "Allow authenticated users to read otp_logs"
 ON public.otp_logs
 FOR SELECT
 TO authenticated
-USING (
-    LOWER(auth.jwt() ->> 'email') IN (
-        SELECT LOWER(email) FROM public.allowed_users
-    )
-);
+USING (true);
 
 -- Note: Webhook insertions use the SUPABASE_SERVICE_ROLE_KEY which bypasses RLS automatically.
 

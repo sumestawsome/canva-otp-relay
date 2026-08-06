@@ -60,7 +60,8 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
-  // 4. Verify user email against allowed_users whitelist table
+  // 4. Verify user email against allowed_users whitelist table (DISABLED: Whitelist check bypassed so any authenticated user can access)
+  /*
   if (user.email) {
     const { data: allowedUser } = await supabase
       .from('allowed_users')
@@ -86,6 +87,7 @@ export async function middleware(request: NextRequest) {
     }
     return supabaseResponse
   }
+  */
 
   // 5. If user is authenticated & authorized, but visits /login -> redirect to /dashboard
   if (isLoginPage) {
