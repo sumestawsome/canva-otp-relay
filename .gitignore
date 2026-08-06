@@ -1,0 +1,23 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js build output
+/.next/
+/out/
+
+# local env files (SANGAT PENTING: Mencegah kunci rahasia bocor)
+.env
+.env*.local
+.env.production
+
+# vercel
+.vercel
+
+# debug & OS logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.pem
