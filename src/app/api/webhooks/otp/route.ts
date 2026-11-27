@@ -8,10 +8,13 @@ export async function POST(request: NextRequest) {
 
     // 1. Verify Secret Key (check custom header 'x-secret-key' or payload body 'secret_key')
     const headerSecret = request.headers.get('x-secret-key')
-    const secretKey = headerSecret || bodySecret
+    const rawSecret = headerSecret || bodySecret
     const expectedSecret = process.env.WEBHOOK_SECRET_KEY
 
-    if (!expectedSecret || secretKey !== expectedSecret) {
+    const cleanExpected = expectedSecret ? expectedSecret.trim().replace(/^['"]|['"]$/g, '') : null
+    const cleanReceived = rawSecret ? String(rawSecret).trim().replace(/^['"]|['"]$/g, '') : null
+
+    if (!cleanExpected || cleanReceived !== cleanExpected) {
       return NextResponse.json(
         { error: 'Unauthorized: Invalid or missing secret key' },
         { status: 401 }
@@ -62,9 +65,18 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('[WEBHOOK OTP ERROR]', error)
+      console.error('[WEBHOOK OTP ERROR]', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
       return NextResponse.json(
-        { error: 'Failed to persist OTP record', details: error.message },
+        {
+          error: 'Failed to persist OTP record',
+          details: error.message || String(error),
+          code: (error as any)?.code || undefined,
+        },
         { status: 500 }
       )
     }

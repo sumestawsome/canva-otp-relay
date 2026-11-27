@@ -9,7 +9,11 @@ export function createAdminClient() {
     throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.')
   }
 
-  return createClient<Database>(supabaseUrl, serviceRoleKey, {
+  // Sanitize: trim whitespace, strip accidental surrounding quotes, strip trailing slashes
+  const cleanUrl = supabaseUrl.trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '')
+  const cleanKey = serviceRoleKey.trim().replace(/^['"]|['"]$/g, '')
+
+  return createClient<Database>(cleanUrl, cleanKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,

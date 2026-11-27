@@ -19,19 +19,23 @@ export async function updateSession(request: NextRequest) {
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey =
+  const rawKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !rawKey) {
     console.error('Supabase URL or Key is missing in environment variables.')
     return supabaseResponse
   }
 
+  // Sanitize: trim whitespace, strip surrounding quotes, strip trailing slashes
+  const cleanUrl = supabaseUrl.trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '')
+  const cleanKey = rawKey.trim().replace(/^['"]|['"]$/g, '')
+
   // 2. Initialize Supabase SSR Client for middleware
   const supabase = createServerClient<Database>(
-    supabaseUrl,
-    supabaseKey,
+    cleanUrl,
+    cleanKey,
     {
       cookies: {
         getAll() {
