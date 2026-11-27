@@ -3,7 +3,7 @@
 -- Executed in Supabase SQL Editor
 -- ==============================================================================
 
--- 1. Create allowed_users table for team access whitelist
+-- 1. allowed_users table (Retained for legacy/compatibility; not required for Open Access authentication)
 CREATE TABLE IF NOT EXISTS public.allowed_users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
@@ -32,7 +32,7 @@ ALTER TABLE public.allowed_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.otp_logs ENABLE ROW LEVEL SECURITY;
 
 -- 3. RLS Policies for allowed_users
--- Authenticated users can view allowed_users list if their email is in allowed_users
+-- Retained policy for allowed_users (table is optional/legacy in Open Access mode)
 CREATE POLICY "Allow whitelisted users to read allowed_users"
 ON public.allowed_users
 FOR SELECT
@@ -44,7 +44,8 @@ USING (
 );
 
 -- 4. RLS Policies for otp_logs
--- Allow all authenticated users to SELECT from otp_logs
+-- Allow ALL authenticated users to SELECT from otp_logs
+-- Unauthenticated users (anon) are strictly denied by RLS
 CREATE POLICY "Allow authenticated users to read otp_logs"
 ON public.otp_logs
 FOR SELECT
@@ -55,9 +56,3 @@ USING (true);
 
 -- 5. Enable Supabase Realtime for otp_logs table
 ALTER PUBLICATION supabase_realtime ADD TABLE public.otp_logs;
-
--- 6. Insert initial team whitelist example (Change/add your team emails here)
-INSERT INTO public.allowed_users (email, full_name)
-VALUES 
-    ('ceksosial3@gmail.com', 'Team Mailbox Admin')
-ON CONFLICT (email) DO NOTHING;

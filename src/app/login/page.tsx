@@ -1,8 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { KeyRound, ShieldCheck, LogIn } from 'lucide-react'
+import { KeyRound, ShieldCheck } from 'lucide-react'
+
+function LoginErrorBanner({
+  onReceiveError,
+}: {
+  onReceiveError: (msg: string) => void
+}) {
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const error = searchParams.get('error')
+    if (error) {
+      onReceiveError(decodeURIComponent(error))
+    }
+  }, [searchParams, onReceiveError])
+
+  return null
+}
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -13,7 +31,7 @@ export default function LoginPage() {
       setLoading(true)
       setErrorMsg(null)
       const supabase = createClient()
-      
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -23,17 +41,21 @@ export default function LoginPage() {
 
       if (error) {
         setErrorMsg(error.message)
+        setLoading(false)
       }
     } catch (err: any) {
       setErrorMsg(err?.message || 'Gagal terhubung ke Google OAuth.')
-    } finally {
       setLoading(false)
     }
   }
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+      <Suspense fallback={null}>
+        <LoginErrorBanner onReceiveError={setErrorMsg} />
+      </Suspense>
+
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-violet-600/20 text-violet-400 border border-violet-500/30 mb-2">
             <KeyRound className="w-8 h-8" />
@@ -54,7 +76,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-slate-100 font-medium rounded-xl border border-slate-700 transition flex items-center justify-center gap-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-slate-100 font-medium rounded-xl border border-slate-700 transition flex items-center justify-center gap-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
@@ -86,7 +108,7 @@ export default function LoginPage() {
 
         <div className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-4 border-t border-slate-800">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Restricted to Whitelisted Internal Team Emails</span>
+          <span>Google OAuth 2.0 Secure Authentication</span>
         </div>
       </div>
     </main>
